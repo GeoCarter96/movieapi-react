@@ -1,146 +1,126 @@
-import {React, useEffect, useRef} from 'react'
-import './Landing.css'
-
-//https://www.omdbapi.com/?i=tt3896198&apikey=d69e1a3c
-const API_KEY = "d69e1a3c";
-
-  
-
-
-
-
-let currentMovies = []; 
-
-
-async function searchMovies() {
-  const query = searchInput.value.trim();
-  if (!query) return;
-
-  loadingSpinner.classList.add("active");
-  movieResults.innerHTML = "";
-
-  const response = await fetch(`https://www.omdbapi.com/?s=${query}&apikey=${API_KEY}`);
-  const data = await response.json();
-  
-
-  loadingSpinner.classList.remove("active");
-
-  if (data.Response === "True") {
-    currentMovies = data.Search; 
-    displayMovies(currentMovies);
-  } else {
-    movieResults.innerHTML = "No movies found. Try another search.";
-  }
-}
-
-
-
-function displayMovies(movies) {
-  const sortBy = sortSelect.value;
-  let sortedMovies = [...movies]; 
-
-  if (sortBy === "az") {
-    sortedMovies.sort((a, b) => a.Title.localeCompare(b.Title));
-  } else if (sortBy === "za") {
-    sortedMovies.sort((a, b) => b.Title.localeCompare(a.Title));
-  } else if (sortBy === "newest") {
-    sortedMovies.sort((a, b) => Number(b.Year) - Number(a.Year));
-  } else if (sortBy === "oldest") {
-    sortedMovies.sort((a, b) => Number(a.Year) - Number(b.Year));
-  }
-
-  const firstSix = sortedMovies.slice(0, 6); 
-
-  movieResults.innerHTML = firstSix
-    .map(
-      (movie) => `
-    <div class="movie-card">
-      <img 
-        src="${movie.Poster}"
-        alt="${movie.Title}"
-      >
-      <h3>${movie.Title}</h3>
-      <p>${movie.Year}</p>
-    </div>
-  `
-    )
-    .join("");
-}
-
-
-
-
-     
+// import React and useState 
+import React, { useState } from "react";
+import "./Landing.css";
 
 
 
 const Landing = () => {
-  const ref = useRef();
-  useEffect(() => {
-    let el = document.getElementById('loadingSpinner')
-    console.log(el)
-  }, [])
-  useEffect(() => {
-    let el2 = document.getElementById('searchBtn')
-    console.log(el2)
-  }, [])
-  useEffect(() => {
-    let el3 = document.getElementById('searchInput')
-    console.log(el3)
-  }, [])
-  useEffect(() => {
-    let el4 = document.getElementById('sortSelect')
-    console.log(el4)
-  }, [])
-  useEffect(() => {
-    let el5 = document.getElementById('movieResults')
-    console.log(el5)
-  }, [])
+  const API_KEY = "d69e1a3c";
+  // using useState to store data istaed of global variable
+  const [query, setQuery] = useState("");
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [sortBy, setSortBy] = useState("");
 
+  async function searchMovies() {
+    // this part prevent empty searches
+    if (!query.trim()) return;
 
-  
+    // show the loading when we search
+    setLoading(true);
+    
+
+    try {
+       // Fetch data from OMDB API
+      const response = await fetch(
+        `https://www.omdbapi.com/?s=${query}&apikey=${API_KEY}`
+      );
+      const data = await response.json();
+
+      // If movies are found, store them in state
+      if (data.Response === "True") {
+        // only keep the first 6 movies
+        setMovies(data.Search.slice(0, 6));
+      } else {
+        // if no movies found clear the result
+        setMovies([]);
+      }
+    } catch (error) {
+      console.error("Error fetching movies:", error);
+      setMovies([]);
+    } finally {
+      // hide the loading
+      setLoading(false);
+    }
+  };
+
+  // again sorting is done using state 
+  const sortedMovies = [...movies].sort((a, b) => {
+    if (sortBy === "newest") return Number(b.Year) - Number(a.Year);
+    if (sortBy === "oldest") return Number(a.Year) - Number(b.Year);
+    return 0;
+  });
+
   return (
-   <div>
-     <nav className="navbar">
-      <div className='logo-box'>
-      <h1 className="logo">🎬 Movies</h1>
-</div>
-      <div className="search-group">
-        <input ref={ref} type="text" id="searchInput" placeholder="Search movies..."/>
-        <div className="search-controls">
-        <button ref={ref} id="searchBtn">Search</button>
-        <select ref={ref} id="sortSelect" className="sort-select">
-          <option value="" disabled="" >Sort movies...</option>
-          <option value="az">Title A → Z</option>
-          <option value="za">Title Z → A</option>
-          <option value="newest">Newest First</option>
-          <option value="oldest">Oldest First</option>
-        </select>
+    <div>
+      <nav className="navbar">
+        <div className="logo-box">
+          <h1 className="logo">🎬 Movies</h1>
+        </div>
+
+        <div className="search-group">
+          <input
+            type="text"
+            placeholder="Search movies..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+
+          <div className="search-controls">
+            <button onClick={searchMovies}>Search</button>
+
+            <select
+              className="sort-select"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="">Sort movies...</option>
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+            </select>
+          </div>
+        </div>
+      </nav>
+
+       {/*
+        conditional rendering instead of classList manipulation
+      */}
+
+      {loading && (
+        <div className="movies movies__loading">
+          <i className="fa-solid fa-spinner movies__loading--spinner"></i>
+        </div>
+      )}
+
+      <div className="container">
+        <div className="movie__wrapper">
+          <div className="movie-results">
+             {/*
+              show message if no movies are found
+            */}
+            {!loading && sortedMovies.length === 0 && (
+              <p>No movies found. Try another search.</p>
+            )}
+
+            {sortedMovies.map((movie) => (
+              <div key={movie.imdbID} className="movie-card">
+                <img
+                  src={
+                    movie.Poster !== "N/A"
+                      ? movie.Poster
+                      : "https://via.placeholder.com/300x450?text=No+Image"
+                  }
+                  alt={movie.Title}
+                />
+                <h3>{movie.Title}</h3>
+                <p>{movie.Year}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </nav>
-
-    <div className="movies movies__loading" ref={ref} id="loadingSpinner">
-      <i className="fa-solid fa-spinner movies__loading--spinner"></i>
     </div>
+  );
+};
 
-    <div className="container">
-        <div className="movie__wrapper">
-      <div ref={ref} id="movieResults" className="movie-results"></div>
-     
-     
-    </div>
-        </div>
-   
-
-    
-    <footer>
-      <p>© 2025 MovieFinder</p>
-    </footer>
-
-</div>
-
-  )
-}
-
-export default Landing
+export default Landing;
