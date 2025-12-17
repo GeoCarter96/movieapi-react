@@ -8,7 +8,7 @@ function Home() {
     <div>
    <Nav/>
    <Hero/>
-    <Footer/>
+  
 </div>
        
  

@@ -36,10 +36,11 @@ body {
   font-weight: 700;
   padding: 8px 16px;
  
+ 
 }
 
 .logo-box{
-  padding: 15px 15px;
+ padding-top: 50px;
 }
 
 .navbar {

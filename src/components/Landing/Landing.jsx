@@ -44,6 +44,8 @@ const Landing = () => {
     }
   };
 
+ 
+
   // again sorting is done using state 
   const sortedMovies = [...movies].sort((a, b) => {
     if (sortBy === "newest") return Number(b.Year) - Number(a.Year);
@@ -55,7 +57,7 @@ const Landing = () => {
     <div>
       <nav className="navbar">
         <div className="logo-box">
-          <h1 className="logo">🎬 Movies</h1>
+          <h1 className="logo"> Movies</h1>
         </div>
 
         <div className="search-group">
