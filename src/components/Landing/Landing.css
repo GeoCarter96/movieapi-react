@@ -34,14 +34,19 @@ body {
   font-size: 40px;
   font-weight: 700;
   padding: 8px 16px;
+ 
+}
+
+.logo-box{
+  padding: 15px 15px;
 }
 
 .navbar {
   background-color: orangered;
   padding: 16px 32px;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  justify-content: center ;
+ 
   gap: 16px;
 }
 
